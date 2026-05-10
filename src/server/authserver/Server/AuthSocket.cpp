@@ -41,7 +41,8 @@ enum eStatus
     STATUS_AUTHED
 };
 
-// GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push, N), also any gcc version not support it at some paltform
+// GCC has alternative #pragma pack(N) syntax. Old GCC versions do not support
+// pack(push, N), and some platforms do not support it at all.
 #if defined(__GNUC__)
 #pragma pack(1)
 #else
@@ -126,7 +127,8 @@ typedef struct AuthHandler
     bool (AuthSocket::* handler)(void);
 } AuthHandler;
 
-// GCC have alternative #pragma pack() syntax and old gcc version not support pack(pop), also any gcc version not support it at some paltform
+// GCC has alternative #pragma pack() syntax. Old GCC versions do not support
+// pack(pop), and some platforms do not support it at all.
 #if defined(__GNUC__)
 #pragma pack()
 #else
@@ -196,7 +198,8 @@ AuthSocket::~AuthSocket(void) { }
 // Accept the connection
 void AuthSocket::OnAccept(void)
 {
-    SF_LOG_DEBUG("server.authserver", "'%s:%d' Accepting connection", socket().getRemoteAddress().c_str(), socket().getRemotePort());
+    SF_LOG_DEBUG("server.authserver", "'%s:%d' Accepting connection",
+        socket().getRemoteAddress().c_str(), socket().getRemotePort());
 }
 
 void AuthSocket::OnClose(void)
@@ -220,7 +223,8 @@ void AuthSocket::OnRead()
             ++challengesInARow;
             if (challengesInARow == MAX_AUTH_LOGON_CHALLENGES_IN_A_ROW)
             {
-                SF_LOG_WARN("server.authserver", "Got %u AUTH_LOGON_CHALLENGE in a row from '%s', possible ongoing DoS", challengesInARow, socket().getRemoteAddress().c_str());
+                SF_LOG_WARN("server.authserver", "Got %u AUTH_LOGON_CHALLENGE in a row from '%s', possible ongoing DoS",
+                    challengesInARow, socket().getRemoteAddress().c_str());
                 socket().shutdown();
                 return;
             }
@@ -231,13 +235,16 @@ void AuthSocket::OnRead()
         // Circle through known commands and call the correct command handler
         for (i = 0; i < AUTH_TOTAL_COMMANDS; ++i)
         {
-            if ((uint8)table[i].cmd == _cmd && (table[i].status == STATUS_CONNECTED || (_authed && table[i].status == STATUS_AUTHED)))
+            if ((uint8)table[i].cmd == _cmd &&
+                (table[i].status == STATUS_CONNECTED || (_authed && table[i].status == STATUS_AUTHED)))
             {
-                SF_LOG_DEBUG("server.authserver", "Got data for cmd %u recv length %u", (uint32)_cmd, (uint32)socket().recv_len());
+                SF_LOG_DEBUG("server.authserver", "Got data for cmd %u recv length %u",
+                    (uint32)_cmd, (uint32)socket().recv_len());
 
                 if (!(*this.*table[i].handler)())
                 {
-                    SF_LOG_DEBUG("server.authserver", "Command handler failed for cmd %u recv length %u", (uint32)_cmd, (uint32)socket().recv_len());
+                    SF_LOG_DEBUG("server.authserver", "Command handler failed for cmd %u recv length %u",
+                        (uint32)_cmd, (uint32)socket().recv_len());
                     return;
                 }
                 break;
@@ -299,7 +306,8 @@ bool AuthSocket::_HandleLogonChallenge()
 
     _login = (const char*)ch->I;
     _build = ch->build;
-    _expversion = uint8(AuthHelper::IsPostBCAcceptedClientBuild(_build) ? POST_BC_EXP_FLAG : (AuthHelper::IsPreBCAcceptedClientBuild(_build) ? PRE_BC_EXP_FLAG : NO_VALID_EXP_FLAG));
+    _expversion = uint8(AuthHelper::IsPostBCAcceptedClientBuild(_build) ? POST_BC_EXP_FLAG :
+        (AuthHelper::IsPreBCAcceptedClientBuild(_build) ? PRE_BC_EXP_FLAG : NO_VALID_EXP_FLAG));
     _os = (const char*)ch->os;
 
     if (_os.size() > 4)
@@ -321,7 +329,8 @@ bool AuthSocket::_HandleLogonChallenge()
     if (result)
     {
         pkt << uint8(AuthResult::WOW_FAIL_BANNED);
-        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] Banned ip tries to login!", socket().getRemoteAddress().c_str(), socket().getRemotePort());
+        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] Banned ip tries to login!",
+            socket().getRemoteAddress().c_str(), socket().getRemotePort());
     }
     else
     {
@@ -339,7 +348,8 @@ bool AuthSocket::_HandleLogonChallenge()
             bool locked = false;
             if (fields[1].GetUInt8() == 1)                  // if ip is locked
             {
-                SF_LOG_DEBUG("server.authserver", "[AuthChallenge] Account '%s' is locked to IP - '%s'", _login.c_str(), fields[3].GetCString());
+                SF_LOG_DEBUG("server.authserver", "[AuthChallenge] Account '%s' is locked to IP - '%s'",
+                    _login.c_str(), fields[3].GetCString());
                 SF_LOG_DEBUG("server.authserver", "[AuthChallenge] Player address is '%s'", ip_address.c_str());
 
                 if (strcmp(fields[3].GetCString(), ip_address.c_str()) != 0)
@@ -357,7 +367,8 @@ bool AuthSocket::_HandleLogonChallenge()
                 std::string accountCountry = fields[2].GetString();
                 if (accountCountry.empty() || accountCountry == "00")
                 {
-                    SF_LOG_DEBUG("server.authserver", "[AuthChallenge] Account '%s' is not locked to country", _login.c_str());
+                    SF_LOG_DEBUG("server.authserver", "[AuthChallenge] Account '%s' is not locked to country",
+                        _login.c_str());
                 }
 
                 if (!accountCountry.empty())
@@ -370,7 +381,9 @@ bool AuthSocket::_HandleLogonChallenge()
                     if (PreparedQueryResult sessionCountryQuery = LoginDatabase.Query(stmt))
                     {
                         std::string loginCountry = (*sessionCountryQuery)[0].GetString();
-                        SF_LOG_DEBUG("server.authserver", "[AuthChallenge] Account '%s' is locked to country: '%s' Player country is '%s'", _login.c_str(), accountCountry.c_str(), loginCountry.c_str());
+                        SF_LOG_DEBUG("server.authserver",
+                            "[AuthChallenge] Account '%s' is locked to country: '%s' Player country is '%s'",
+                            _login.c_str(), accountCountry.c_str(), loginCountry.c_str());
                         if (loginCountry != accountCountry)
                         {
                             SF_LOG_DEBUG("server.authserver", "[AuthChallenge] Account country differs.");
@@ -399,17 +412,21 @@ bool AuthSocket::_HandleLogonChallenge()
                     if ((*banresult)[0].GetUInt32() == (*banresult)[1].GetUInt32())
                     {
                         pkt << uint8(AuthResult::WOW_FAIL_BANNED);
-                        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] Banned account %s tried to login!", socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
+                        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] Banned account %s tried to login!",
+                            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
                     }
                     else
                     {
                         pkt << uint8(AuthResult::WOW_FAIL_SUSPENDED);
-                        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] Temporarily banned account %s tried to login!", socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
+                        SF_LOG_DEBUG("server.authserver",
+                            "'%s:%d' [AuthChallenge] Temporarily banned account %s tried to login!",
+                            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
                     }
                 }
                 else
                 {
-                    _srp6.emplace(_login, fields[5].GetBinary<SkyFire::Crypto::SRP6::SALT_LENGTH>(), fields[6].GetBinary<SkyFire::Crypto::SRP6::VERIFIER_LENGTH>());
+                    _srp6.emplace(_login, fields[5].GetBinary<SkyFire::Crypto::SRP6::SALT_LENGTH>(),
+                        fields[6].GetBinary<SkyFire::Crypto::SRP6::VERIFIER_LENGTH>());
 
                     BigNumber unk3;
                     unk3.SetRand(16 * 8);
@@ -456,15 +473,18 @@ bool AuthSocket::_HandleLogonChallenge()
                         pkt << uint8(1);
 
                     AccountTypes secLevel = AccountTypes(fields[4].GetUInt8());
-                    _accountSecurityLevel = secLevel <= AccountTypes::SEC_ADMINISTRATOR ? AccountTypes(secLevel) : AccountTypes::SEC_ADMINISTRATOR;
+                    _accountSecurityLevel = secLevel <= AccountTypes::SEC_ADMINISTRATOR ?
+                        AccountTypes(secLevel) : AccountTypes::SEC_ADMINISTRATOR;
 
                     _localizationName.resize(4);
                     for (int i = 0; i < 4; ++i)
                         _localizationName[i] = ch->country[4 - i - 1];
 
-                    SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] account %s is using '%c%c%c%c' locale (%u)", socket().getRemoteAddress().c_str(), socket().getRemotePort(),
-                        _login.c_str(), ch->country[3], ch->country[2], ch->country[1], ch->country[0], GetLocaleByName(_localizationName)
-                    );
+                    SF_LOG_DEBUG("server.authserver",
+                        "'%s:%d' [AuthChallenge] account %s is using '%c%c%c%c' locale (%u)",
+                        socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str(),
+                        ch->country[3], ch->country[2], ch->country[1], ch->country[0],
+                        GetLocaleByName(_localizationName));
                 }
             }
         }
@@ -499,9 +519,11 @@ bool AuthSocket::_HandleLogonProof()
     {
          _sessionKey = *K;
 
-        SF_LOG_DEBUG("server.authserver", "'%s:%d' User '%s' successfully authenticated", socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
+        SF_LOG_DEBUG("server.authserver", "'%s:%d' User '%s' successfully authenticated",
+            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
 
-        // Update the sessionkey, last_ip, last login time and reset number of failed logins in the account table for this account
+        // Update the sessionkey, last_ip, last login time and reset number of failed logins
+        // in the account table for this account.
         // No SQL injection (escaped user name) and IP address as received by socket
 
         PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_UPD_LOGONPROOF);
@@ -540,7 +562,7 @@ bool AuthSocket::_HandleLogonProof()
             proof.M2 = M2;
             proof.cmd = AUTH_LOGON_PROOF;
             proof.error = 0;
-            proof.unk1 = 0x00800000;    // Accountflags. 0x01 = GM, 0x08 = Trial, 0x00800000 = Pro pass (arena tournament)
+            proof.unk1 = 0x00800000;    // Accountflags. 0x01 = GM, 0x08 = Trial, 0x00800000 = Pro pass.
             proof.unk2 = 0x00;          // SurveyId
             proof.unk3 = 0x00;
             socket().send((char*)&proof, sizeof(proof));
@@ -562,7 +584,9 @@ bool AuthSocket::_HandleLogonProof()
         char data[4] = { AUTH_LOGON_PROOF, uint8(AuthResult::WOW_FAIL_UNKNOWN_ACCOUNT), 3, 0 };
         socket().send(data, sizeof(data));
 
-        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] account %s tried to login with invalid password!", socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
+        SF_LOG_DEBUG("server.authserver",
+            "'%s:%d' [AuthChallenge] account %s tried to login with invalid password!",
+            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
 
         uint32 MaxWrongPassCount = sConfigMgr->GetIntDefault("WrongPass.MaxCount", 0);
         if (MaxWrongPassCount > 0)
@@ -592,8 +616,11 @@ bool AuthSocket::_HandleLogonProof()
                         stmt->setUInt32(1, WrongPassBanTime);
                         LoginDatabase.Execute(stmt);
 
-                        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] account %s got banned for '%u' seconds because it failed to authenticate '%u' times",
-                            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str(), WrongPassBanTime, failed_logins);
+                        SF_LOG_DEBUG("server.authserver",
+                            "'%s:%d' [AuthChallenge] account %s got banned for '%u' seconds "
+                            "because it failed to authenticate '%u' times",
+                            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str(),
+                            WrongPassBanTime, failed_logins);
                     }
                     else
                     {
@@ -602,8 +629,11 @@ bool AuthSocket::_HandleLogonProof()
                         stmt->setUInt32(1, WrongPassBanTime);
                         LoginDatabase.Execute(stmt);
 
-                        SF_LOG_DEBUG("server.authserver", "'%s:%d' [AuthChallenge] IP %s got banned for '%u' seconds because account %s failed to authenticate '%u' times",
-                            socket().getRemoteAddress().c_str(), socket().getRemotePort(), socket().getRemoteAddress().c_str(), WrongPassBanTime, _login.c_str(), failed_logins);
+                        SF_LOG_DEBUG("server.authserver",
+                            "'%s:%d' [AuthChallenge] IP %s got banned for '%u' seconds "
+                            "because account %s failed to authenticate '%u' times",
+                            socket().getRemoteAddress().c_str(), socket().getRemotePort(),
+                            socket().getRemoteAddress().c_str(), WrongPassBanTime, _login.c_str(), failed_logins);
                     }
                 }
             }
@@ -653,14 +683,17 @@ bool AuthSocket::_HandleReconnectChallenge()
     // Stop if the account is not found
     if (!result)
     {
-        SF_LOG_ERROR("server.authserver", "'%s:%d' [ERROR] user %s tried to login and we cannot find his session key in the database.", socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
+        SF_LOG_ERROR("server.authserver",
+            "'%s:%d' [ERROR] user %s tried to login and we cannot find his session key in the database.",
+            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
         socket().shutdown();
         return false;
     }
 
     // Reinitialize build, expansion and the account securitylevel
     _build = ch->build;
-    _expversion = uint8(AuthHelper::IsPostBCAcceptedClientBuild(_build) ? POST_BC_EXP_FLAG : (AuthHelper::IsPreBCAcceptedClientBuild(_build) ? PRE_BC_EXP_FLAG : NO_VALID_EXP_FLAG));
+    _expversion = uint8(AuthHelper::IsPostBCAcceptedClientBuild(_build) ? POST_BC_EXP_FLAG :
+        (AuthHelper::IsPreBCAcceptedClientBuild(_build) ? PRE_BC_EXP_FLAG : NO_VALID_EXP_FLAG));
     _os = (const char*)ch->os;
 
     if (_os.size() > 4)
@@ -671,7 +704,8 @@ bool AuthSocket::_HandleReconnectChallenge()
 
     Field* fields = result->Fetch();
     AccountTypes secLevel = AccountTypes(fields[2].GetUInt8());
-    _accountSecurityLevel = secLevel <= AccountTypes::SEC_ADMINISTRATOR ? AccountTypes(secLevel) : AccountTypes::SEC_ADMINISTRATOR;
+    _accountSecurityLevel = secLevel <= AccountTypes::SEC_ADMINISTRATOR ?
+        AccountTypes(secLevel) : AccountTypes::SEC_ADMINISTRATOR;
 
     _sessionKey = fields[0].GetBinary<SESSION_KEY_LENGTH>();
     SkyFire::Crypto::GetRandomBytes(_reconnectProof);
@@ -721,7 +755,8 @@ bool AuthSocket::_HandleReconnectProof()
     }
     else
     {
-        SF_LOG_ERROR("server.authserver", "'%s:%d' [ERROR] user %s tried to login, but session is invalid.", socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
+        SF_LOG_ERROR("server.authserver", "'%s:%d' [ERROR] user %s tried to login, but session is invalid.",
+            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
         socket().shutdown();
         return false;
     }
@@ -765,7 +800,9 @@ bool AuthSocket::_HandleRealmList()
     PreparedQueryResult result = LoginDatabase.Query(stmt);
     if (!result)
     {
-        SF_LOG_ERROR("server.authserver", "'%s:%d' [ERROR] user %s tried to login but we cannot find him in the database.", socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
+        SF_LOG_ERROR("server.authserver",
+            "'%s:%d' [ERROR] user %s tried to login but we cannot find him in the database.",
+            socket().getRemoteAddress().c_str(), socket().getRemotePort(), _login.c_str());
         socket().shutdown();
         return false;
     }
@@ -779,7 +816,8 @@ bool AuthSocket::_HandleRealmList()
     ACE_INET_Addr clientAddr;
     socket().peer().get_remote_addr(clientAddr);
 
-    // Circle through realms in the RealmList and construct the return packet (including # of user characters in each realm)
+    // Circle through realms in the RealmList and construct the return packet,
+    // including the number of user characters in each realm.
     ByteBuffer pkt;
 
     size_t RealmListSize = 0;
@@ -787,7 +825,8 @@ bool AuthSocket::_HandleRealmList()
     {
         const Realm& realm = i->second;
         // don't work with realms which not compatible with the client
-        bool okBuild = ((_expversion & POST_BC_EXP_FLAG) && realm.gamebuild == _build) || ((_expversion & PRE_BC_EXP_FLAG) && !AuthHelper::IsPreBCAcceptedClientBuild(realm.gamebuild));
+        bool okBuild = ((_expversion & POST_BC_EXP_FLAG) && realm.gamebuild == _build) ||
+            ((_expversion & PRE_BC_EXP_FLAG) && !AuthHelper::IsPreBCAcceptedClientBuild(realm.gamebuild));
 
         // No SQL injection. id of realm is controlled by the database.
         uint32 flag = realm.flag;
@@ -807,7 +846,8 @@ bool AuthSocket::_HandleRealmList()
         if (_expversion & PRE_BC_EXP_FLAG && flag & REALM_FLAG_SPECIFYBUILD)
         {
             std::ostringstream ss;
-            ss << name << " (" << buildInfo->MajorVersion << '.' << buildInfo->MinorVersion << '.' << buildInfo->BugfixVersion << ')';
+            ss << name << " (" << buildInfo->MajorVersion << '.' << buildInfo->MinorVersion << '.'
+                << buildInfo->BugfixVersion << ')';
             name = ss.str();
         }
 

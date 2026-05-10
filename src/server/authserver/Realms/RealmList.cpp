@@ -18,7 +18,10 @@ void RealmList::Initialize(uint32 updateInterval)
     UpdateRealms(true);
 }
 
-void RealmList::UpdateRealm(uint32 id, const std::string& name, ACE_INET_Addr const& address, ACE_INET_Addr const& localAddr, ACE_INET_Addr const& localSubmask, uint8 icon, RealmFlags flag, uint8 timezone, AccountTypes allowedSecurityLevel, float popu, uint32 build)
+void RealmList::UpdateRealm(uint32 id, const std::string& name, ACE_INET_Addr const& address,
+    ACE_INET_Addr const& localAddr, ACE_INET_Addr const& localSubmask,
+    uint8 icon, RealmFlags flag, uint8 timezone, AccountTypes allowedSecurityLevel,
+    float popu, uint32 build)
 {
     // Create new if not exist or update existed
     Realm& realm = m_realms[name];
@@ -83,10 +86,14 @@ void RealmList::UpdateRealms(bool init)
             ACE_INET_Addr localAddr(port, localAddress.c_str(), AF_INET);
             ACE_INET_Addr submask(0, localSubmask.c_str(), AF_INET);
 
-            UpdateRealm(realmId, name, externalAddr, localAddr, submask, icon, flag, timezone, (allowedSecurityLevel <= AccountTypes::SEC_ADMINISTRATOR ? AccountTypes(allowedSecurityLevel) : AccountTypes::SEC_ADMINISTRATOR), pop, build);
+            AccountTypes securityLevel = allowedSecurityLevel <= AccountTypes::SEC_ADMINISTRATOR ?
+                AccountTypes(allowedSecurityLevel) : AccountTypes::SEC_ADMINISTRATOR;
+            UpdateRealm(realmId, name, externalAddr, localAddr, submask, icon, flag, timezone,
+                securityLevel, pop, build);
 
             if (init)
-                SF_LOG_INFO("server.authserver", "Added realm \"%s\" at %s:%u.", name.c_str(), m_realms[name].ExternalAddress.get_host_addr(), port);
+                SF_LOG_INFO("server.authserver", "Added realm \"%s\" at %s:%u.", name.c_str(),
+                    m_realms[name].ExternalAddress.get_host_addr(), port);
         } while (result->NextRow());
     }
 }

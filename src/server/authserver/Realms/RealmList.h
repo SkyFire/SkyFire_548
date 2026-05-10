@@ -63,7 +63,10 @@ public:
 
 private:
     void UpdateRealms(bool init = false);
-    void UpdateRealm(uint32 id, const std::string& name, ACE_INET_Addr const& address, ACE_INET_Addr const& localAddr, ACE_INET_Addr const& localSubmask, uint8 icon, RealmFlags flag, uint8 timezone, AccountTypes allowedSecurityLevel, float popu, uint32 build);
+    void UpdateRealm(uint32 id, const std::string& name, ACE_INET_Addr const& address,
+        ACE_INET_Addr const& localAddr, ACE_INET_Addr const& localSubmask,
+        uint8 icon, RealmFlags flag, uint8 timezone, AccountTypes allowedSecurityLevel,
+        float popu, uint32 build);
 
     RealmMap m_realms;
     uint32   m_UpdateInterval;

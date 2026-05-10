@@ -408,7 +408,7 @@ set(ace_STAT_SRCS
   XTI_ATM_Mcast.cpp
 )
 
-if (USE_COREPCH)
+if (USE_COREPCH AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders/WinAcePCH.h" AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/PrecompiledHeaders/WinAcePCH.cpp")
   set(ace_PCH_HDR PrecompiledHeaders/WinAcePCH.h)
   set(ace_PCH_SRC PrecompiledHeaders/WinAcePCH.cpp)
 endif()
@@ -447,7 +447,7 @@ if (MINGW) # GCC ignores "#prama comment"
 endif()
 
 # Generate precompiled header
-if( USE_COREPCH )
+if( ace_PCH_HDR AND ace_PCH_SRC )
   add_cxx_pch(ace ${ace_PCH_HDR} ${ace_PCH_SRC})
 endif()
 

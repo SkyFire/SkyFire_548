@@ -39,7 +39,8 @@
 # define _SKYFIRE_REALM_CONFIG  "authserver.conf"
 #endif
 
-bool StartDB(const char* host, const char* port, const char* user, const char* pass, const char* database, bool noUseConfigDatabaseInfo);
+bool StartDB(const char* host, const char* port, const char* user, const char* pass,
+    const char* database, bool noUseConfigDatabaseInfo);
 void StopDB();
 
 bool stopEvent = false;                                     // Setting it to true stops the server
@@ -86,13 +87,14 @@ public:
 void usage(const char* prog)
 {
     printf("Usage:\n");
-    printf(" %s [<options>]\n");
+    printf(" %s [<options>]\n", prog);
     printf("    -c config_file                   use config_file as configuration file\n");
     printf("    --no_use_config_database_info    dont use database login info from config file\n");
     printf("    --db_host                        sets the database host, requires: --no_use_config_database_info\n");
     printf("    --db_port                        sets the database port, requires: --no_use_config_database_info\n");
     printf("    --db_user                        sets the database user, requires: --no_use_config_database_info\n");
-    printf("    --db_password                    sets the database password, requires: --no_use_config_database_info\n");
+    printf("    --db_password                    sets the database password, requires: "
+        "--no_use_config_database_info\n");
     printf("    --db_auth                        sets the auth database, requires: --no_use_config_database_info\n");
 }
 
@@ -225,11 +227,15 @@ extern int main(int argc, char** argv)
     uint32 confVersion = sConfigMgr->GetIntDefault("ConfVersion", 0);
     if (confVersion < SKYFIREAUTH_CONFIG_VERSION)
     {
-        SF_LOG_INFO("server.authserver", "*****************************************************************************");
-        SF_LOG_INFO("server.authserver", " WARNING: Your authserver.conf version indicates your conf file is out of date!");
-        SF_LOG_INFO("server.authserver", "          Please check for updates, as your current default values may cause");
+        SF_LOG_INFO("server.authserver",
+            "*****************************************************************************");
+        SF_LOG_INFO("server.authserver",
+            " WARNING: Your authserver.conf version indicates your conf file is out of date!");
+        SF_LOG_INFO("server.authserver",
+            "          Please check for updates, as your current default values may cause");
         SF_LOG_INFO("server.authserver", "          strange behavior.");
-        SF_LOG_INFO("server.authserver", "*****************************************************************************");
+        SF_LOG_INFO("server.authserver",
+            "*****************************************************************************");
     }
 
     SF_LOG_WARN("server.authserver", "%s (Library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
@@ -243,10 +249,12 @@ extern int main(int argc, char** argv)
         legacy_provider = OSSL_PROVIDER_try_load(NULL, "legacy", 1);
     }
 
-    SF_LOG_INFO("server.authserver", "Loading default provider: (%s)", (default_provider == NULL || !OSSL_PROVIDER_available(NULL, "default")) ? "failed" : "succeeded");
-    SF_LOG_INFO("server.authserver", "Loading legacy provider: (%s)", (legacy_provider == NULL || !OSSL_PROVIDER_available(NULL, "legacy")) ? "failed" : "succeeded");
+    SF_LOG_INFO("server.authserver", "Loading default provider: (%s)",
+        (default_provider == NULL || !OSSL_PROVIDER_available(NULL, "default")) ? "failed" : "succeeded");
+    SF_LOG_INFO("server.authserver", "Loading legacy provider: (%s)",
+        (legacy_provider == NULL || !OSSL_PROVIDER_available(NULL, "legacy")) ? "failed" : "succeeded");
 
-    // recheck 
+    // recheck
     if (legacy_provider == NULL)
         return 1;
 
@@ -331,7 +339,9 @@ extern int main(int argc, char** argv)
             ULONG_PTR currentAffinity = affinity & appAff;            // remove non accessible processors
 
             if (!currentAffinity)
-                SF_LOG_ERROR("server.authserver", "Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. Accessible processors bitmask (hex): %x", affinity, appAff);
+                SF_LOG_ERROR("server.authserver",
+                    "Processors marked in UseProcessors bitmask (hex) %x are not accessible for the authserver. "
+                    "Accessible processors bitmask (hex): %x", affinity, appAff);
             else if (SetProcessAffinityMask(hProcess, currentAffinity))
                 SF_LOG_INFO("server.authserver", "Using processors (bitmask, hex): %x", currentAffinity);
             else
@@ -358,7 +368,8 @@ extern int main(int argc, char** argv)
                 CPU_SET(i, &mask);
 
         if (sched_setaffinity(0, sizeof(mask), &mask))
-            SF_LOG_ERROR("server.authserver", "Can't set used processors (hex): %x, error: %s", affinity, strerror(errno));
+            SF_LOG_ERROR("server.authserver", "Can't set used processors (hex): %x, error: %s",
+                affinity, strerror(errno));
         else
         {
             CPU_ZERO(&mask);
@@ -370,9 +381,11 @@ extern int main(int argc, char** argv)
     if (highPriority)
     {
         if (setpriority(PRIO_PROCESS, 0, PROCESS_HIGH_PRIORITY))
-            SF_LOG_ERROR("server.authserver", "Can't set authserver process priority class, error: %s", strerror(errno));
+            SF_LOG_ERROR("server.authserver", "Can't set authserver process priority class, error: %s",
+                strerror(errno));
         else
-            SF_LOG_INFO("server.authserver", "authserver process priority class set to %i", getpriority(PRIO_PROCESS, 0));
+            SF_LOG_INFO("server.authserver", "authserver process priority class set to %i",
+                getpriority(PRIO_PROCESS, 0));
     }
 
 #endif
@@ -407,7 +420,8 @@ extern int main(int argc, char** argv)
 }
 
 /// Initialize connection to the database
-bool StartDB(const char* host, const char* port, const char* user, const char* pass, const char* database, bool noUseConfigDatabaseInfo)
+bool StartDB(const char* host, const char* port, const char* user, const char* pass,
+    const char* database, bool noUseConfigDatabaseInfo)
 {
     MySQL::Library_Init();
     std::string dbstring;
@@ -436,7 +450,8 @@ bool StartDB(const char* host, const char* port, const char* user, const char* p
         synch_threads = 1;
     }
 
-    // NOTE: While authserver is singlethreaded you should keep synch_threads == 1. Increasing it is just silly since only 1 will be used ever.
+    // NOTE: While authserver is singlethreaded you should keep synch_threads == 1.
+    // Increasing it is just silly since only 1 will be used ever.
     if (noUseConfigDatabaseInfo == false)
     {
         if (!LoginDatabase.Open(dbstring, uint8(worker_threads), uint8(synch_threads)))

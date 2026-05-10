@@ -77,7 +77,8 @@ namespace TOTP
         base32_decode(b32key, encoded, bufsize);
         HMAC(EVP_sha1(), encoded, bufsize, challenge, 8, hmacRes, &hmacResSize);
         unsigned int offset = hmacRes[19] & 0xF;
-        unsigned int truncHash = (hmacRes[offset] << 24) | (hmacRes[offset + 1] << 16) | (hmacRes[offset + 2] << 8) | (hmacRes[offset + 3]);
+        unsigned int truncHash = (hmacRes[offset] << 24) | (hmacRes[offset + 1] << 16) |
+            (hmacRes[offset + 2] << 8) | hmacRes[offset + 3];
         truncHash &= 0x7FFFFFFF;
 
         delete[] encoded;

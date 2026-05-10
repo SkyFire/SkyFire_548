@@ -24,7 +24,6 @@ set(ace_STAT_SRCS
   Asynch_Acceptor.cpp
   Asynch_Connector.cpp
   Asynch_IO.cpp
-  Asynch_IO_Impl.cpp
   Asynch_Pseudo_Task.cpp
   ATM_Acceptor.cpp
   ATM_Addr.cpp
@@ -71,7 +70,6 @@ set(ace_STAT_SRCS
   Connector.cpp
   Containers.cpp
   Containers_T.cpp
-  Copy_Disabled.cpp
   Countdown_Time_T.cpp
   Date_Time.cpp
   DEV.cpp
@@ -309,6 +307,7 @@ set(ace_STAT_SRCS
   Sig_Adapter.cpp
   Sig_Handler.cpp
   Signal.cpp
+  Single_Input_Reactor.cpp
   Singleton.cpp
   SOCK.cpp
   SOCK_Acceptor.cpp
